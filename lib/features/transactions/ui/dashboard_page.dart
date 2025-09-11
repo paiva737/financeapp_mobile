@@ -8,6 +8,7 @@ import 'widgets/income_expense_pie.dart';
 import 'widgets/transaction_tile.dart';
 import 'widgets/add_transaction_sheet.dart';
 import 'widgets/month_selector.dart';
+import '../../reports/ui/reports_pages.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -21,7 +22,20 @@ class DashboardPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('FinanceApp'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Relatórios',
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ReportsPage()),
+              );
+            },
+          ),
+        ],
       ),
+
+
       body: CustomScrollView(
         slivers: [
 
