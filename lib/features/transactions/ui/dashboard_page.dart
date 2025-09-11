@@ -17,33 +17,48 @@ class DashboardPage extends ConsumerWidget {
     final items = ref.watch(filteredTransactionsProvider);
     final totals = ref.watch(filteredTotalsProvider);
 
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('FinanceApp'),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          const MonthSelector(),
-          BalanceHeader(
-            balance: totals.balance,
-            income: totals.income,
-            expense: totals.expense,
-          ),
-          IncomeExpensePie(
-            income: totals.income,
-            expense: totals.expense,
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: items.isEmpty
-                ? const Center(child: Text('Sem transações ainda'))
-                : ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (_, i) => TransactionTile(model: items[i]),
+      body: CustomScrollView(
+        slivers: [
+
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                const MonthSelector(),
+                BalanceHeader(
+                  balance: totals.balance,
+                  income: totals.income,
+                  expense: totals.expense,
+                ),
+                IncomeExpensePie(
+                  income: totals.income,
+                  expense: totals.expense,
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
           ),
+
+
+          if (items.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text('Sem transações ainda')),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, i) => TransactionTile(model: items[i]),
+                childCount: items.length,
+              ),
+            ),
+
+
+          const SliverToBoxAdapter(child: SizedBox(height: 96)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
