@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/transaction.dart';
 import '../../state/transactions_provider.dart';
+import '../../../../core/categories.dart';
+
 
 class AddTransactionSheet extends ConsumerStatefulWidget {
   final TransactionModel? editing; // null = criar, != null = editar
@@ -25,10 +27,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final e = widget.editing;
     _title = TextEditingController(text: e?.title ?? '');
     _amount = TextEditingController(text: e != null ? e.amount.toString() : '');
-    _category = TextEditingController(text: e?.category ?? '');
+    _category = TextEditingController(text: normalizeCategory(e?.category ?? 'Outros')); // <-- aqui
     _date = e?.date ?? DateTime.now();
     _type = e?.type ?? TransactionType.income;
   }
+
 
   @override
   void dispose() {
@@ -84,11 +87,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   },
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: _category,
+                DropdownButtonFormField<String>(
+                  value: categories.keys.contains(_category.text)
+                      ? _category.text
+                      : normalizeCategory(_category.text),
+                  items: categories.keys
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _category.text = normalizeCategory(v)),
                   decoration: const InputDecoration(labelText: 'Categoria'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe a categoria' : null,
                 ),
+
+
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -118,7 +128,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       final amount = double.parse(_amount.text.trim());
 
                       if (isEditing) {
-                        // mantém o mesmo id para sobrescrever no Hive
+
                         final updated = TransactionModel(
                           id: widget.editing!.id,
                           title: _title.text.trim(),

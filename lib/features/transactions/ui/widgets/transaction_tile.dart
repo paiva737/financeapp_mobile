@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/formatters.dart';
+import '../../../../core/categories.dart';
 import '../../../../data/models/transaction.dart';
 import '../../state/transactions_provider.dart';
 import 'add_transaction_sheet.dart';
@@ -12,6 +13,7 @@ class TransactionTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = model.type == TransactionType.income;
+    final data = categories[model.category] ?? categories['Outros']!;
 
     Future<bool> _confirmDelete() async {
       final result = await showDialog<bool>(
@@ -39,9 +41,12 @@ class TransactionTile extends ConsumerWidget {
           isScrollControlled: true,
           builder: (_) => AddTransactionSheet(editing: model),
         ),
-        leading: CircleAvatar(child: Icon(isIncome ? Icons.south_west : Icons.north_east)),
+        leading: CircleAvatar(
+          backgroundColor: data.color.withOpacity(0.2),
+          child: Icon(data.icon, color: data.color),
+        ),
         title: Text(model.title),
-        subtitle: Text('${model.category} • ${formatDate(model.date)}'),
+        subtitle: Text('${data.label} • ${formatDate(model.date)}'),
         trailing: Text(
           (isIncome ? '+' : '-') + formatCurrency(model.amount),
           style: TextStyle(color: isIncome ? Colors.green : Colors.red),
