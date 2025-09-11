@@ -5,6 +5,8 @@ import '../../../core/categories.dart';
 import '../../../core/formatters.dart';
 import '../../transactions/state/period_provider.dart';
 import '../state/category_report_provider.dart';
+import '../export/export_csv.dart';
+
 
 class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
@@ -20,7 +22,15 @@ class ReportsPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Relatórios'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Exportar CSV',
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => exportCurrentMonthCsv(context, ref),
+          ),
+        ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: Column(
