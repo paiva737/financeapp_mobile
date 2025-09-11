@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../transactions/state/filtered_providers.dart';
 import '../../transactions/state/category_filter_provider.dart';
-import '../../../core/formatters.dart';
-
+import '../../transactions/state/type_filter_provider.dart'; // <--
+import 'widgets/type_filter_chips.dart';
 import 'widgets/balance_header.dart';
 import 'widgets/income_expense_pie.dart';
 import 'widgets/transaction_tile.dart';
@@ -20,6 +20,13 @@ class DashboardPage extends ConsumerWidget {
     final items = ref.watch(filteredTransactionsProvider);
     final totals = ref.watch(filteredTotalsProvider);
     final cat = ref.watch(selectedCategoryProvider);
+    final type = ref.watch(selectedTypeFilterProvider);
+
+    String typeLabel(TxTypeFilter t) => switch (t) {
+      TxTypeFilter.all => 'Todos os tipos',
+      TxTypeFilter.income => 'Entradas',
+      TxTypeFilter.expense => 'Saídas',
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -35,11 +42,15 @@ class DashboardPage extends ConsumerWidget {
                 const MonthSelector(),
                 const SizedBox(height: 4),
                 const CategoryFilterChips(),
-                if (cat != null)
+                const SizedBox(height: 8),
+                const TypeFilterChips(),
+                if (cat != null || type != TxTypeFilter.all)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                    child: Text('Filtrando: $cat',
-                        style: Theme.of(context).textTheme.bodySmall),
+                    child: Text(
+                      'Filtrando: ${cat ?? "Todas as categorias"} • ${typeLabel(type)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 const SizedBox(height: 8),
                 BalanceHeader(
