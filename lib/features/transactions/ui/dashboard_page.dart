@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../transactions/state/filtered_providers.dart';
-import '../../transactions/state/transactions_provider.dart';
+import '../../transactions/state/category_filter_provider.dart';
 import '../../../core/formatters.dart';
+
 import 'widgets/balance_header.dart';
 import 'widgets/income_expense_pie.dart';
 import 'widgets/transaction_tile.dart';
 import 'widgets/add_transaction_sheet.dart';
 import 'widgets/month_selector.dart';
-import '../../reports/ui/reports_pages.dart';
+import 'widgets/category_filter_chips.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -17,32 +19,29 @@ class DashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(filteredTransactionsProvider);
     final totals = ref.watch(filteredTotalsProvider);
+    final cat = ref.watch(selectedCategoryProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('FinanceApp'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            tooltip: 'Relatórios',
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ReportsPage()),
-              );
-            },
-          ),
-        ],
       ),
-
-
       body: CustomScrollView(
         slivers: [
-
           SliverToBoxAdapter(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const MonthSelector(),
+                const SizedBox(height: 4),
+                const CategoryFilterChips(),
+                if (cat != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                    child: Text('Filtrando: $cat',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ),
+                const SizedBox(height: 8),
                 BalanceHeader(
                   balance: totals.balance,
                   income: totals.income,
@@ -56,8 +55,6 @@ class DashboardPage extends ConsumerWidget {
               ],
             ),
           ),
-
-
           if (items.isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
@@ -70,8 +67,6 @@ class DashboardPage extends ConsumerWidget {
                 childCount: items.length,
               ),
             ),
-
-
           const SliverToBoxAdapter(child: SizedBox(height: 96)),
         ],
       ),
