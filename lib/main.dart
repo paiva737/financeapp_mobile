@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'data/local/hive_boxes.dart';
-import 'features/transactions/ui/dashboard_page.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import 'features/auth/ui/auth_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initHive();
 
-  Intl.defaultLocale = 'pt_BR';
-  await initializeDateFormatting('pt_BR');
+
+  await Hive.initFlutter();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -37,19 +34,10 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
-
       scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.touch,
-          PointerDeviceKind.mouse,
-
-
-        },
+        dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
       ),
-
-
-      home: const DashboardPage(),
+      home: const AuthGate(),
     );
   }
 }

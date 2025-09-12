@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/ui/auth_gate.dart';
+import '../../auth/state/auth_providers.dart';
+
 import '../../transactions/state/filtered_providers.dart';
 import '../../transactions/state/category_filter_provider.dart';
-import '../../transactions/state/type_filter_provider.dart'; // <--
+import '../../transactions/state/type_filter_provider.dart';
+import '../../reports/ui/reports_pages.dart';
+
 import 'widgets/type_filter_chips.dart';
 import 'widgets/balance_header.dart';
 import 'widgets/income_expense_pie.dart';
@@ -32,7 +37,41 @@ class DashboardPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('FinanceApp'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Relatórios',
+            icon: const Icon(Icons.insert_chart_outlined_rounded),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ReportsPage()),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: 'Sair',
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await ref.read(authStateProvider.notifier).logout();
+
+
+              ref.invalidate(selectedCategoryProvider);
+              ref.invalidate(selectedTypeFilterProvider);
+              ref.invalidate(filteredTransactionsProvider);
+              ref.invalidate(filteredTotalsProvider);
+
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthGate()),
+                      (route) => false,
+                );
+              }
+            },
+          ),
+        ],
       ),
+
+
+
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
