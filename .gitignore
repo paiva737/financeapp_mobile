@@ -56,7 +56,12 @@ app.*.map.json
 .env
 .env.*
 # Local dev server
-auth-server/
+auth-server/.env
+auth-server/.env.*
+auth-server/node_modules/
+auth-server/npm-debug.log*
+auth-server/yarn*.log
+auth-server/pnpm-debug.log*
 
 
 
