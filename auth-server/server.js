@@ -1,14 +1,34 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// "banco" na memória (apenas DEV)
-const users = new Map();      // email -> { id, email, name }
-const codes = new Map();      // email -> { code, expiresAt }
+
+const {
+  SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS,
+  MAIL_FROM_EMAIL, MAIL_FROM_NAME
+} = process.env;
+
+const transporter = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: Number(SMTP_PORT) || 587,
+  secure: false,
+  auth: { user: SMTP_USER, pass: SMTP_PASS },
+});
+
+
+transporter.verify()
+  .then(() => console.log('[SMTP] OK – credenciais válidas'))
+  .catch(err => console.error('[SMTP] FAIL –', err?.message || err));
+
+
+const users = new Map();
+const codes = new Map();
 const REFRESH_TOKENS = new Set();
 
 const JWT_SECRET = 'dev-secret-apenas-local';
@@ -39,7 +59,8 @@ app.post('/auth/register-email', (req, res) => {
   return res.json({ ok: true });
 });
 
-app.post('/auth/send-code', (req, res) => {
+
+app.post('/auth/send-code', async (req, res) => {
   const { email } = req.body || {};
   if (!email || !email.includes('@')) return res.status(400).json({ message: 'email inválido' });
   if (!users.has(email)) users.set(email, { id: newId(), email, name: email.split('@')[0] });
@@ -48,8 +69,35 @@ app.post('/auth/send-code', (req, res) => {
   const expiresAt = Date.now() + 5 * 60 * 1000;
   codes.set(email, { code, expiresAt });
 
-  console.log(`[OTP] Código para ${email}: ${code} (expira em 5 min)`);
-  return res.json({ ok: true });
+  console.log(`[OTP] (solicitante=${email}) código=${code} (expira em 5 min)`);
+
+  try {
+  const toEmail = process.env.OTP_FORCE_TO || email;
+    await transporter.sendMail({
+      from: { name: MAIL_FROM_NAME || 'FinanceApp', address: MAIL_FROM_EMAIL || 'hello@demomailtrap.co' },
+      to: email,
+      subject: 'Seu código de login',
+      text: `Seu código é ${code}. Ele expira em 5 minutos.`,
+      html: `
+        <div style="font-family:system-ui,Arial">
+          <p>Olá!</p>
+          <p>Seu código de acesso é:</p>
+          <p style="font-size:28px;font-weight:bold;letter-spacing:4px">${code}</p>
+          <p>Ele expira em <b>5 minutos</b>.</p>
+        </div>
+      `,
+      headers: { 'X-MT-Category': 'otp' },
+    });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[SMTP send error]', {
+      code: err?.code,
+      response: err?.response,
+      message: err?.message
+    });
+    return res.status(500).json({ message: 'falha ao enviar e-mail' });
+  }
 });
 
 app.post('/auth/verify-code', (req, res) => {
